@@ -13,7 +13,7 @@ int idx_x = threadIdx.x + blockIdx.x * blockDim.x;
 int idx_y = threadIdx.y + blockIdx.y * blockDim.y;
 
 if ((idx_x < dimx) && (idx_y < dimy)) {
-a[idx_x * dimx + idx_y] = idx_x * dimx + idx_y;
+a[idx_y * dimx + idx_x] = idx_y * dimx + idx_x;
 }
 } 
 
@@ -67,7 +67,7 @@ int main() {
 		std::cout<<h_a[row * dimx + col] << std::endl;
 		std::cout<<(row * dimx + col) << std::endl;
 		}
-            //assert(h_a[row * dimx + col] == row * dimx + col);
+            assert(h_a[row * dimx + col] == row * dimx + col);
 	}
     }
     // free host memory
