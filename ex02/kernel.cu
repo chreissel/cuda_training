@@ -1,16 +1,17 @@
 #include <assert.h>
 #include <iostream>
 // Here you can set the device ID that was assigned to you
-#define MYDEVICE 0
+#define MYDEVICE 1
 
 
 // Simple utility function to check for CUDA runtime errors
 void checkCUDAError(const char *msg);
 
 // Part 3 of 5: implement the kernel
-__global__ void myFirstKernel(  )
+__global__ void myFirstKernel(int *d_a)
 {
-
+int i = blockIdx.x * blockDim.x + threadIdx.x;
+d_a[i] = blockIdx.x + threadIdx.x;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -32,12 +33,14 @@ int main( int argc, char** argv)
     // Part 1 of 5: allocate host and device memory
     size_t memSize = numBlocks * numThreadsPerBlock * sizeof(int);
     h_a = (int *) malloc(memSize);
-    cudaMalloc( );
+    cudaMalloc(&d_a, memSize);
+    cudaMemcpy(d_a, h_a, memSize, cudaMemcpyHostToDevice);
+
 
     // Part 2 of 5: configure and launch kernel
-    dim3 dimGrid( );
-    dim3 dimBlock( );
-    myFirstKernel<<< , >>>(  );
+    dim3 dimGrid(numBlocks);
+    dim3 dimBlock(numThreadsPerBlock);
+    myFirstKernel<<<dimGrid,dimBlock>>>(d_a);
 
     // block until the device has completed
     cudaDeviceSynchronize();
@@ -46,7 +49,7 @@ int main( int argc, char** argv)
     checkCUDAError("kernel execution");
 
     // Part 4 of 5: device to host copy
-    cudaMemcpy( );
+    cudaMemcpy(h_a, d_a, memSize, cudaMemcpyDeviceToHost);
 
     // Check for any CUDA errors
     checkCUDAError("cudaMemcpy");
@@ -56,7 +59,9 @@ int main( int argc, char** argv)
     {
         for (int j = 0; j <       8            ; ++j)
         {
-            // assert(h_a[i * numThreadsPerBlock + j] == i + j);
+	     //std::cout << (i+j) << std::endl;
+	     //std::cout << h_a[i * numThreadsPerBlock + j] << std::endl;
+             assert(h_a[i * numThreadsPerBlock + j] == i + j);
         }
     }
 
